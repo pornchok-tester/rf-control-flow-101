@@ -31,14 +31,14 @@
 
   <div class="pre-ch">
     <div class="pre-ch-label">🔄 ทบทวนบทที่แล้ว</div>
-    <p style="font-size:14px;"><code>FOR    ${i}    IN RANGE    3    9    2</code> ได้ค่าอะไรบ้าง? | FOR IN ZIP หยุดเมื่อไหร่ถ้า list ยาวไม่เท่ากัน?</p>
+    <p style="font-size:14px;"><code>FOR    ${i}    IN RANGE    3    9    2</code> ได้ค่าอะไรบ้าง?</p>
     <details class="reveal"><summary>ดูเฉลย</summary>
-      <div class="reveal-body">3, 5, 7 | หยุดเมื่อ list ที่สั้นกว่าหมด</div>
+      <div class="reveal-body">3, 5, 7 — เริ่มที่ 3 บวก step 2 ทุกรอบ หยุดก่อนถึง 9</div>
     </details>
   </div>
 
   <div class="ch-label">บทที่ 3</div>
-  <h1>WHILE Loop, BREAK และ CONTINUE</h1>
+  <h1>WHILE Loop และ BREAK</h1>
   <span class="badge badge-orange">⚠️ RF 5.0+</span>
 
   <div class="obj-box">
@@ -47,7 +47,6 @@
       <li>เขียน WHILE loop ที่วนจนเงื่อนไขเปลี่ยน</li>
       <li>ตั้ง limit ป้องกัน infinite loop</li>
       <li>ใช้ BREAK ออกจาก loop กลางคัน</li>
-      <li>ใช้ CONTINUE ข้าม iteration ที่ไม่ต้องการ</li>
     </ul>
   </div>
 
@@ -108,26 +107,6 @@
     }'></div>
   </div>
 
-  <h2>CONTINUE — ข้าม Iteration นี้</h2>
-
-  <div class="stepper">
-    <div class="st-header">CONTINUE — ข้ามเลขคู่</div>
-    <div data-stepper='{
-      "code": "FOR    ${i}    IN RANGE    6\n    IF    ${i} % 2 == 0    CONTINUE\n    Log    เลขคี่: ${i}\nEND",
-      "steps": [
-        {"hi":[1],"vars":{"i":0},"out":[],"note":"รอบที่ 1: i = 0"},
-        {"hi":[2],"vars":{"i":0},"out":[],"note":"0 % 2 == 0 → True → CONTINUE ข้ามไปรอบถัดไปเลย"},
-        {"hi":[1],"vars":{"i":1},"out":[],"note":"รอบที่ 2: i = 1"},
-        {"hi":[2],"vars":{"i":1},"out":[],"note":"1 % 2 == 0 → False → ไม่ CONTINUE"},
-        {"hi":[3],"vars":{"i":1},"out":["เลขคี่: 1"],"note":"Log เลขคี่: 1"},
-        {"hi":[1],"vars":{"i":2},"out":["เลขคี่: 1"],"note":"รอบที่ 3: i = 2 → CONTINUE (ข้าม)"},
-        {"hi":[1],"vars":{"i":3},"out":["เลขคี่: 1"],"note":"รอบที่ 4: i = 3"},
-        {"hi":[3],"vars":{"i":3},"out":["เลขคี่: 1","เลขคี่: 3"],"note":"Log เลขคี่: 3"},
-        {"hi":[4],"vars":{"i":5},"out":["เลขคี่: 1","เลขคี่: 3","เลขคี่: 5"],"note":"ผ่านทุกรอบแล้ว — END"}
-      ]
-    }'></div>
-  </div>
-
   <h2>Common Mistakes</h2>
 
   <div class="mistake">
@@ -143,7 +122,7 @@ END</code></pre>
   </div>
 
   <div class="mistake">
-    <div class="wrong">❌ BREAK / CONTINUE นอก loop</div>
+    <div class="wrong">❌ BREAK นอก loop</div>
     <pre><code class="language-robotframework">BREAK    # error — ต้องอยู่ใน FOR หรือ WHILE เท่านั้น</code></pre>
     <div class="right">✅ ใช้ได้เฉพาะภายใน loop body</div>
     <div class="mistake-src">source: RF User Guide</div>
@@ -158,13 +137,7 @@ END</code></pre>
       </details>
     </div>
     <div class="quiz-item">
-      <p class="q-text"><span>ข้อ 2.</span> ต่างกันยังไงระหว่าง BREAK กับ CONTINUE?</p>
-      <details class="ans"><summary>ดูเฉลย</summary>
-        <div class="ans-body"><strong>BREAK</strong> หยุด loop ทั้งหมด ออกไปรัน keyword ถัดจาก END | <strong>CONTINUE</strong> หยุดแค่ iteration ปัจจุบัน แล้วไปเริ่มรอบถัดไป</div>
-      </details>
-    </div>
-    <div class="quiz-item">
-      <p class="q-text"><span>ข้อ 3.</span> เมื่อไหร่ควรใช้ WHILE แทน FOR?</p>
+      <p class="q-text"><span>ข้อ 2.</span> เมื่อไหร่ควรใช้ WHILE แทน FOR?</p>
       <details class="ans"><summary>ดูเฉลย</summary>
         <div class="ans-body">เมื่อไม่รู้จำนวนรอบล่วงหน้า เช่น รอ element โหลด, poll API จน status เปลี่ยน, retry จนสำเร็จ</div>
       </details>

@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>บทที่ 2: FOR Loop — RF Control Flow</title>
+
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
 </head>
@@ -39,15 +40,13 @@
 
   <div class="ch-label">บทที่ 2</div>
   <h1>FOR Loop</h1>
-  <span class="badge badge-green">✅ RF 4.0+ (IN ENUMERATE start=: RF 6.0+)</span>
+  <span class="badge badge-green">✅ RF 4.0+</span>
 
   <div class="obj-box">
     <h4>🎯 อ่านจบแล้วทำได้</h4>
     <ul>
       <li>วน loop ผ่าน list ด้วย FOR IN</li>
       <li>วนตามตัวเลขด้วย FOR IN RANGE</li>
-      <li>ดึง index พร้อมค่าด้วย FOR IN ENUMERATE</li>
-      <li>วน 2 list คู่ขนานด้วย FOR IN ZIP</li>
     </ul>
   </div>
 
@@ -99,47 +98,6 @@
     }'></div>
   </div>
 
-  <h2>FOR IN ENUMERATE — วนพร้อม index</h2>
-  <p>เมื่อต้องรู้ว่า item อยู่ลำดับที่เท่าไหร่ เช่น log "แถวที่ N" หรือ validate ตาราง</p>
-
-  <pre><code class="language-robotframework">@{items}=    Create List    alpha    beta    gamma
-
-# index เริ่มที่ 0 (default)
-FOR    ${index}    ${item}    IN ENUMERATE    @{items}
-    Log    [${index}] ${item}
-END</code></pre>
-  <div class="out-box"><div class="out-label">Output</div>[0] alpha<br>[1] beta<br>[2] gamma</div>
-
-  <pre><code class="language-robotframework"># เริ่ม index จาก 1 (RF 6.0+)
-FOR    ${index}    ${item}    IN ENUMERATE    @{items}    start=1
-    Log    [${index}] ${item}
-END</code></pre>
-  <div class="out-box"><div class="out-label">Output</div>[1] alpha<br>[2] beta<br>[3] gamma</div>
-
-  <h2>FOR IN ZIP — วน 2 list พร้อมกัน</h2>
-  <p>ใช้จับคู่ข้อมูลจาก 2 list เช่น ชื่อ + คะแนน, input + expected output</p>
-
-  <pre><code class="language-robotframework">${names}=    Create List    Alice    Bob    Carol
-${scores}=   Create List    90       75     88
-FOR    ${name}    ${score}    IN ZIP    ${names}    ${scores}
-    Log    ${name}: ${score}
-END</code></pre>
-  <div class="out-box"><div class="out-label">Output</div>Alice: 90<br>Bob: 75<br>Carol: 88</div>
-
-  <div class="info-box">
-    <strong>ข้อจำกัด IN ZIP:</strong> ต้องใช้ตัวแปร list เท่านั้น ไม่รับ inline string — <code>IN ZIP    Alice    Bob    1    2</code> จะ error<br>
-    และถ้า list ยาวไม่เท่ากัน จะวนตาม list ที่สั้นกว่า items ที่เหลือจะถูกข้ามโดยไม่แจ้งเตือน
-  </div>
-
-  <h2>เลือก variant ไหนดี?</h2>
-  <table>
-    <tr><th>สถานการณ์</th><th>ใช้</th></tr>
-    <tr><td>วน list ไม่ต้องรู้ index</td><td><code>FOR IN</code></td></tr>
-    <tr><td>วนตามจำนวนรอบที่รู้ล่วงหน้า</td><td><code>FOR IN RANGE</code></td></tr>
-    <tr><td>ต้องรู้ว่า item อยู่ตำแหน่งที่เท่าไหร่</td><td><code>FOR IN ENUMERATE</code></td></tr>
-    <tr><td>จับคู่ข้อมูลจาก 2 list</td><td><code>FOR IN ZIP</code></td></tr>
-  </table>
-
   <h2>Common Mistakes</h2>
 
   <div class="mistake">
@@ -168,9 +126,9 @@ FOR    ${i}    IN RANGE    ${end}</code></pre>
       </details>
     </div>
     <div class="quiz-item">
-      <p class="q-text"><span>ข้อ 2.</span> FOR IN ZIP หยุดเมื่อไหร่ถ้า list A มี 4 items, list B มี 2 items?</p>
+      <p class="q-text"><span>ข้อ 2.</span> FOR IN กับ FOR IN RANGE ต่างกันยังไง ใช้อันไหนเมื่อไหร่?</p>
       <details class="ans"><summary>ดูเฉลย</summary>
-        <div class="ans-body">วน 2 รอบ แล้วหยุด เพราะ ZIP หยุดเมื่อ list ที่สั้นกว่าหมด — items ที่เหลือใน A ถูกข้ามไปเงียบๆ</div>
+        <div class="ans-body">FOR IN ใช้เมื่อมี list อยู่แล้ว วนผ่านทุก item | FOR IN RANGE ใช้เมื่อต้องการวน N รอบโดยกำหนดตัวเลข เช่น ลอง 3 ครั้ง หรือวน 0 ถึง 9</div>
       </details>
     </div>
   </div>
