@@ -53,7 +53,7 @@
 
   <h2>ทำไมต้องรู้เรื่อง List?</h2>
   <p>ในบทถัดไปจะเจอ keyword ชื่อ <code>Get WebElements</code> — keyword นี้คืนค่ากลับมาเป็น <strong>List ของ element</strong> บนหน้าเว็บ ถ้าไม่รู้ว่า List คืออะไร จะงงตั้งแต่บรรทัดแรก</p>
-  <p>บทนี้สอนแค่ที่จำเป็นสำหรับบทถัดไป — ไม่เกิน 10 นาที</p>
+  <p>บทนี้สอนแค่ที่จำเป็นสำหรับบทถัดไป</p>
 
   <h2>List คืออะไร?</h2>
   <p>List คือ <strong>กล่องที่เก็บของหลายชิ้นเรียงกัน</strong> เหมือน checklist ทดสอบที่มีหลาย step — แต่ละ step มีเลขที่ของตัวเอง</p>
@@ -79,9 +79,10 @@
   <div class="out-box"><div class="out-label">Output</div>[apple, banana, cherry]<br>apple<br>banana<br>cherry</div>
 
   <div class="info-box">
-    <strong>@{} กับ ${} ต่างกันยังไง?</strong><br>
-    <code>@{fruits}</code> — ใช้ตอนสร้าง หรือตอน FOR เพื่อ "แตก" list ออกเป็น item ทีละตัว<br>
-    <code>${fruits}</code> — ใช้ตอนอ้างอิง list ทั้งก้อน เช่น ส่งให้ keyword อื่น หรือดึงด้วย index <code>${fruits}[0]</code>
+    ตอนสร้าง list ใช้ <code>@{}</code> — ตอนดึงค่าออกมาใช้ <code>${}</code><br><br>
+    <code>@{fruits}=    Create List    ...</code> &nbsp;← สร้าง<br>
+    <code>Log    ${fruits}[0]</code> &nbsp;← ดึง item ที่ index 0<br>
+    <code>FOR    ${x}    IN    @{fruits}</code> &nbsp;← วน
   </div>
 
   <h2>ดูจำนวน item — Get Length</h2>
