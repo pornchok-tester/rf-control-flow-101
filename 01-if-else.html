@@ -20,6 +20,7 @@
     <a href="01-if-else.html" class="active"><span class="nav-icon">🔀</span> บทที่ 1 — IF / ELSE</a>
     <a href="02-for-loop.html"><span class="nav-icon">🔁</span> บทที่ 2 — FOR Loop</a>
     <a href="03-while-loop.html"><span class="nav-icon">⏳</span> บทที่ 3 — WHILE + BREAK</a>
+    <a href="04-selenium.html"><span class="nav-icon">🌐</span> บทที่ 4 — Selenium จริง</a>
     <div class="nav-section-label">ฝึกหัด</div>
     <a href="exercises.html"><span class="nav-icon">✏️</span> แบบฝึกหัด</a>
     <a href="glossary.html"><span class="nav-icon">📖</span> Glossary</a>
@@ -45,12 +46,7 @@
   </div>
 
   <h2>ทำไมต้องมี IF?</h2>
-  <p>ใน test จริง ผลลัพธ์ที่คาดหวังมักขึ้นอยู่กับบริบท เช่น:</p>
-  <ul>
-    <li>ถ้า environment คือ production → check ค่าหนึ่ง</li>
-    <li>ถ้าเป็น staging → check อีกค่าหนึ่ง</li>
-  </ul>
-  <p>ถ้าไม่มี IF เราต้องเขียน test แยกทุก case ซึ่งซ้ำซ้อนมาก</p>
+  <p>ลองนึกภาพ test ที่ต้องรันได้ทั้ง production และ staging แต่ค่าที่ต้อง check ต่างกัน ถ้าไม่มี IF ก็ต้องก็อป test ไปเขียนแยก 2 ไฟล์ แก้อะไรก็ต้องแก้ 2 ที่ นั่นคือปัญหา</p>
 
   <div class="analogy-box">
     <div class="analogy-title">🚦 Analogy: ไฟจราจร</div>
@@ -90,7 +86,7 @@ Grade Check
     C
   </div>
 
-  <p><strong>สำคัญ:</strong> RF ประเมินจากบนลงล่าง เจอ condition แรกที่ <code>True</code> → รัน แล้วข้าม ELSE IF/ELSE ที่เหลือทั้งหมด</p>
+  <p>RF อ่านจากบนลงล่าง เจอ condition แรกที่ <code>True</code> ก็รันแล้วออกเลย ไม่ไปเช็ค ELSE IF ที่เหลือ</p>
 
   <div class="analogy-box" style="background:#fff7ed;border-color:#fed7aa;border-left-color:#f97316;">
     <div class="analogy-title" style="color:#c2410c;">💡 Tip: เรียง condition จากเข้มงวดที่สุด</div>
