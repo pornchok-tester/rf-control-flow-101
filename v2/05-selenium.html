@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>บทที่ 5: Loop + Selenium จริง — RF Control Flow</title>
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+<style>
+.pattern-card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-top: 3px solid var(--primary);
+  border-radius: 10px;
+  padding: 24px 28px;
+  margin-bottom: 32px;
+}
+.pattern-card h3 { margin-top: 0; }
+.pattern-num {
+  display: inline-block;
+  background: var(--primary);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 20px;
+  margin-bottom: 10px;
+  letter-spacing: 0.05em;
+}
+.new-kw-box {
+  background: #fdf4ff;
+  border: 1px solid #e9d5ff;
+  border-radius: 6px;
+  padding: 12px 16px;
+  margin: 12px 0 16px;
+  font-size: 13.5px;
+}
+.new-kw-box .nk-label {
+  color: #7c3aed;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+.new-kw-box .nk-row {
+  margin-bottom: 6px;
+  line-height: 1.6;
+}
+.new-kw-box .nk-row:last-child { margin-bottom: 0; }
+</style>
+</head>
+<body>
+<aside class="sidebar">
+  <div class="sidebar-header">
+    <div class="sidebar-title">Robot Framework</div>
+    <div class="sidebar-subtitle">Control Flow · v2</div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-label">เนื้อหา</div>
+    <a href="index.html">🏠 Overview</a>
+    <a href="01-if-else.html">🔀 บทที่ 1 — IF / ELSE</a>
+    <a href="02-for-loop.html">🔁 บทที่ 2 — FOR Loop</a>
+    <a href="03-while-loop.html">⏳ บทที่ 3 — WHILE + BREAK</a>
+    <a href="04-list.html">📦 บทที่ 4 — List ใน RF</a>
+    <a href="05-selenium.html" class="active">🌐 บทที่ 5 — Selenium จริง</a>
+    <div class="nav-label">ฝึกหัด</div>
+    <a href="exercises.html">✏️ แบบฝึกหัด</a>
+    <a href="glossary.html">📖 Glossary</a>
+  </nav>
+  <div class="sidebar-footer">RF 7.3.2 · Python 3.14</div>
+</aside>
+<div class="main"><div class="content">
+
+  <div class="pre-ch">
+    <div class="pre-ch-label">🔄 ทบทวนบทที่แล้ว</div>
+    <p style="font-size:14px;">List ที่ไม่มี item เลย — ถ้าเอาไปใช้กับ FOR จะเกิดอะไรขึ้น? แล้วถ้าต้องการให้ fail ต้องทำยังไง?</p>
+    <details class="reveal"><summary>ดูเฉลย</summary>
+      <div class="reveal-body">FOR จะไม่ทำงานเลย — เงียบๆ และผ่านไป ไม่มี error | ถ้าต้องการ fail ต้องใช้ <code>Should Not Be Empty</code> ก่อน loop</div>
+    </details>
+  </div>
+
+  <div class="ch-label">บทที่ 5</div>
+  <h1>Loop + Selenium หน้างานจริง</h1>
+  <span class="badge badge-green">✅ SeleniumLibrary 6.x</span>
+
+  <div class="obj-box">
+    <h4>🎯 บทนี้จะได้อะไร</h4>
+    <ul>
+      <li>รอ loading / spinner หายด้วย WHILE แทน Sleep แบบ hardcode</li>
+      <li>วน element บนหน้าเว็บที่จำนวนไม่แน่นอนด้วย Get WebElements</li>
+      <li>retry action ที่บางครั้ง click ไม่ติดครั้งแรก</li>
+      <li>วน pagination จนหมดทุกหน้า</li>
+    </ul>
+  </div>
+
+  <div class="new-kw-box">
+    <div class="nk-label">keyword ใหม่ในบทนี้</div>
+    <div class="nk-row"><code><strong>Get WebElements</strong>    locator</code> — คืน list ของ element ทุกตัวที่ match locator ถ้าไม่เจอเลยคืน list ว่าง (ไม่ fail)</div>
+    <div class="nk-row"><code><strong>Get Text</strong>    locator_or_element</code> — คืน text ที่อยู่ใน element นั้น</div>
+    <div class="nk-row"><code><strong>Run Keyword And Return Status</strong>    keyword    args</code> — รัน keyword แล้วคืน <code>True</code> ถ้าผ่าน, <code>False</code> ถ้า fail — ไม่หยุดการทดสอบ</div>
+  </div>
+
+  <!-- PATTERN 1 -->
+  <div class="pattern-card">
+    <span class="pattern-num">Pattern 1</span>
+    <h3>รอ Loading / Spinner ด้วย WHILE</h3>
+    <p><code>Sleep    5s</code> แบบ hardcode คือปัญหา — ถ้าโหลดเร็วก็เสียเวลาเปล่า ถ้าโหลดช้ากว่านั้นก็ยัง fail อยู่ดี WHILE แก้ได้ตรงๆ โดยเช็คทุก 0.5 วินาทีจนกว่า spinner จะหาย</p>
+
+    <div class="stepper">
+      <div class="st-header">WHILE รอ spinner หายก่อนทำต่อ</div>
+      <div data-stepper='{
+        "code": "WHILE    True    limit=30 seconds\n    ${loading}=    Run Keyword And Return Status\n    ...               Element Should Be Visible    css=.spinner\n    IF    not ${loading}    BREAK\n    Sleep    0.5s\nEND",
+        "steps": [
+          {"hi":[1],"vars":{"loading":"(ยังไม่รู้)"},"out":[],"note":"เข้า WHILE — condition เป็น True ตลอด ใช้ limit=30s คุมแทน"},
+          {"hi":[2,3],"vars":{"loading":"True"},"out":[],"note":"Run Keyword And Return Status: spinner ยังเห็นอยู่ → loading = True"},
+          {"hi":[4],"vars":{"loading":"True"},"out":[],"note":"IF not True → False → ไม่ BREAK วนต่อ"},
+          {"hi":[5],"vars":{"loading":"True"},"out":[],"note":"Sleep 0.5s รอ"},
+          {"hi":[1],"vars":{"loading":"True"},"out":[],"note":"วนรอบใหม่ — เช็ค condition อีกครั้ง (True อยู่เสมอ)"},
+          {"hi":[2,3],"vars":{"loading":"False"},"out":[],"note":"spinner หายแล้ว → Element Should Be Visible fail → loading = False"},
+          {"hi":[4],"vars":{"loading":"False"},"out":[],"note":"IF not False → True → BREAK! ออกจาก loop"},
+          {"hi":[6],"vars":{"loading":"False"},"out":[],"note":"END — พ้น loop แล้ว ทำงานต่อได้เลย"}
+        ]
+      }'></div>
+    </div>
+
+    <p>keyword นี้ใช้ซ้ำได้ทั่วทั้ง suite — เรียกทุกครั้งที่ต้องรอก่อนทำต่อ:</p>
+    <pre><code class="language-robotframework">*** Keywords ***
+Wait For Spinner To Disappear
+    [Arguments]    ${timeout}=30 seconds
+    WHILE    True    limit=${timeout}
+        ${loading}=    Run Keyword And Return Status
+        ...    Element Should Be Visible    css=.loading-spinner
+        IF    not ${loading}    BREAK
+        Sleep    0.5s
+    END
+
+*** Test Cases ***
+Submit Order
+    Fill Order Form
+    Click Element    css=button#submit
+    Wait For Spinner To Disappear    # รอ spinner หายก่อน
+    Element Should Be Visible    css=.order-success</code></pre>
+
+    <div class="mistake">
+      <div class="wrong">❌ วิธีที่พบบ่อย</div>
+      <pre><code class="language-robotframework">Click Element    css=button#submit
+Sleep    5s    # hardcode — ไม่รู้ว่าพอหรือเปล่า
+Element Should Be Visible    css=.order-success</code></pre>
+      <div class="right">✅ วิธีที่ถูก</div>
+      <pre><code class="language-robotframework">Click Element    css=button#submit
+Wait For Spinner To Disappear
+Element Should Be Visible    css=.order-success</code></pre>
+    </div>
+  </div>
+
+  <!-- PATTERN 2 -->
+  <div class="pattern-card">
+    <span class="pattern-num">Pattern 2</span>
+    <h3>วน element ที่ไม่รู้ว่ามีกี่ตัว</h3>
+    <p>เมื่อหน้าเว็บ render รายการที่จำนวนขึ้นอยู่กับ data เช่น notification, ผลการค้นหา, รายการสินค้า — <code>Get WebElements</code> ดึง element ทั้งหมดมาเป็น list แล้วใช้ FOR วนผ่านได้เลย</p>
+
+    <div class="stepper">
+      <div class="st-header">Get WebElements + FOR — ตรวจทุก row ใน table</div>
+      <div data-stepper='{
+        "code": "@{rows}=    Get WebElements    css=table tbody tr\nShould Not Be Empty    ${rows}    ไม่เจอ row ใน table\nFOR    ${row}    IN    @{rows}\n    ${text}=    Get Text    ${row}\n    Log    ${text}\nEND",
+        "steps": [
+          {"hi":[1],"vars":{"rows":"[element×3]"},"out":[],"note":"Get WebElements คืน list ของ tr element 3 ตัว"},
+          {"hi":[2],"vars":{"rows":"[element×3]"},"out":[],"note":"Should Not Be Empty — list มี 3 ตัว ผ่าน"},
+          {"hi":[3],"vars":{"rows":"[element×3]","row":"element แถวที่ 1"},"out":[],"note":"รอบที่ 1: ${row} = element แถวแรก"},
+          {"hi":[4],"vars":{"rows":"[element×3]","row":"element แถวที่ 1","text":"Alice: 90"},"out":[],"note":"Get Text จาก element → Alice: 90"},
+          {"hi":[5],"vars":{"rows":"[element×3]","row":"element แถวที่ 1","text":"Alice: 90"},"out":["Alice: 90"],"note":"Log Alice: 90"},
+          {"hi":[3],"vars":{"rows":"[element×3]","row":"element แถวที่ 2","text":"Alice: 90"},"out":["Alice: 90"],"note":"รอบที่ 2: ${row} = element แถวที่ 2"},
+          {"hi":[4],"vars":{"rows":"[element×3]","row":"element แถวที่ 2","text":"Bob: 75"},"out":["Alice: 90"],"note":"Get Text → Bob: 75"},
+          {"hi":[5],"vars":{"rows":"[element×3]","row":"element แถวที่ 2","text":"Bob: 75"},"out":["Alice: 90","Bob: 75"],"note":"Log Bob: 75"},
+          {"hi":[3],"vars":{"rows":"[element×3]","row":"element แถวที่ 3","text":"Bob: 75"},"out":["Alice: 90","Bob: 75"],"note":"รอบที่ 3: ${row} = element แถวสุดท้าย"},
+          {"hi":[4,5],"vars":{"rows":"[element×3]","row":"element แถวที่ 3","text":"Carol: 88"},"out":["Alice: 90","Bob: 75","Carol: 88"],"note":"Get Text → Carol: 88 แล้ว Log"},
+          {"hi":[6],"vars":{"rows":"[element×3]","row":"element แถวที่ 3","text":"Carol: 88"},"out":["Alice: 90","Bob: 75","Carol: 88"],"note":"END — ผ่านครบทุก row แล้ว"}
+        ]
+      }'></div>
+    </div>
+
+    <pre><code class="language-robotframework">*** Keywords ***
+Verify All Products Have Name
+    @{cards}=    Get WebElements    css=.product-card .name
+    Should Not Be Empty    ${cards}    ไม่เจอ product card เลย
+
+    FOR    ${card}    IN    @{cards}
+        ${name}=    Get Text    ${card}
+        Should Not Be Empty    ${name}    เจอ card ที่ไม่มีชื่อ
+    END</code></pre>
+
+    <div class="info-box">
+      <strong>จำไว้:</strong> <code>Get WebElements</code> ไม่ fail ถ้าไม่เจอ element — คืน list ว่างเงียบๆ ถ้าไม่ใส่ <code>Should Not Be Empty</code> ก่อน loop test จะผ่านทั้งที่ไม่ได้ตรวจอะไรเลย
+    </div>
+  </div>
+
+  <!-- PATTERN 3 -->
+  <div class="pattern-card">
+    <span class="pattern-num">Pattern 3</span>
+    <h3>Retry Action ที่บางครั้ง Click ไม่ติด</h3>
+    <p>บาง element ใน DOM อยู่แล้ว แต่ยังคลิกไม่ได้ เช่น button ที่กำลัง animate เข้ามา หรือ dropdown ที่ต้อง hover ก่อน แทนที่จะ fail ทันที ให้ลองซ้ำก่อนสัก 3 ครั้ง</p>
+
+    <div class="stepper">
+      <div class="st-header">FOR + BREAK — retry 3 ครั้งก่อน fail</div>
+      <div data-stepper='{
+        "code": "FOR    ${attempt}    IN RANGE    3\n    ${ok}=    Run Keyword And Return Status    Click Element    ${locator}\n    IF    ${ok}    BREAK\n    Sleep    1s\nEND\nShould Be True    ${ok}    Click ไม่สำเร็จหลัง 3 ครั้ง",
+        "steps": [
+          {"hi":[1],"vars":{"attempt":0,"ok":"(ยังไม่รู้)"},"out":[],"note":"ครั้งที่ 1 (attempt = 0)"},
+          {"hi":[2],"vars":{"attempt":0,"ok":"False"},"out":[],"note":"Click ไม่ติด — ok = False"},
+          {"hi":[3],"vars":{"attempt":0,"ok":"False"},"out":[],"note":"IF False → ไม่ BREAK ลองใหม่"},
+          {"hi":[4],"vars":{"attempt":0,"ok":"False"},"out":[],"note":"Sleep 1s รอ"},
+          {"hi":[1],"vars":{"attempt":1,"ok":"False"},"out":[],"note":"ครั้งที่ 2 (attempt = 1)"},
+          {"hi":[2],"vars":{"attempt":1,"ok":"False"},"out":[],"note":"Click ยังไม่ติด — ok = False"},
+          {"hi":[3,4],"vars":{"attempt":1,"ok":"False"},"out":[],"note":"ไม่ BREAK → Sleep 1s"},
+          {"hi":[1],"vars":{"attempt":2,"ok":"False"},"out":[],"note":"ครั้งที่ 3 (attempt = 2)"},
+          {"hi":[2],"vars":{"attempt":2,"ok":"True"},"out":[],"note":"Click สำเร็จ! ok = True"},
+          {"hi":[3],"vars":{"attempt":2,"ok":"True"},"out":[],"note":"IF True → BREAK ออกจาก loop"},
+          {"hi":[6],"vars":{"attempt":2,"ok":"True"},"out":[],"note":"Should Be True: ok = True → ผ่าน"}
+        ]
+      }'></div>
+    </div>
+
+    <pre><code class="language-robotframework">*** Keywords ***
+Click With Retry
+    [Arguments]    ${locator}    ${max_retry}=3
+    FOR    ${attempt}    IN RANGE    ${max_retry}
+        ${ok}=    Run Keyword And Return Status
+        ...    Click Element    ${locator}
+        IF    ${ok}    BREAK
+        Sleep    1s
+    END
+    Should Be True    ${ok}
+    ...    Click ไม่สำเร็จหลังลอง ${max_retry} ครั้ง: ${locator}
+
+*** Test Cases ***
+Submit Order
+    Open Order Page
+    Fill Order Form
+    Click With Retry    css=button#submit-order
+    Wait Until Element Is Visible    css=.order-success</code></pre>
+  </div>
+
+  <!-- PATTERN 4 -->
+  <div class="pattern-card">
+    <span class="pattern-num">Pattern 4</span>
+    <h3>วน Pagination จนหมดทุกหน้า</h3>
+    <p>ใช้ตอนที่ต้องตรวจข้อมูลทุกหน้า เช่น verify ว่า item ที่สร้างไปปรากฏใน list — ไม่รู้ว่าอยู่หน้าไหน ต้องวนจนเจอหรือจนหมด</p>
+
+    <div class="stepper">
+      <div class="st-header">WHILE วน Pagination — หยุดเมื่อไม่มีหน้าถัดไป</div>
+      <div data-stepper='{
+        "code": "WHILE    True    limit=20\n    Wait Until Element Is Visible    css=.page-content\n    # ทำงานบนหน้านี้ ...\n    ${has_next}=    Run Keyword And Return Status\n    ...               Element Should Be Visible    css=button.next:not([disabled])\n    IF    not ${has_next}    BREAK\n    Click Element    css=button.next\nEND",
+        "steps": [
+          {"hi":[1],"vars":{"has_next":"(ยังไม่รู้)"},"out":[],"note":"เข้า WHILE — หน้าที่ 1"},
+          {"hi":[2],"vars":{"has_next":"(ยังไม่รู้)"},"out":["[หน้า 1 โหลดแล้ว]"],"note":"Wait Until Element Is Visible — หน้าโหลดเสร็จ"},
+          {"hi":[4,5],"vars":{"has_next":"True"},"out":["[หน้า 1 โหลดแล้ว]"],"note":"เช็คปุ่ม Next → เห็นและกดได้ → has_next = True"},
+          {"hi":[6],"vars":{"has_next":"True"},"out":["[หน้า 1 โหลดแล้ว]"],"note":"IF not True → False → ไม่ BREAK มีหน้าถัดไป"},
+          {"hi":[7],"vars":{"has_next":"True"},"out":["[หน้า 1 โหลดแล้ว]"],"note":"Click Next ไปหน้าที่ 2"},
+          {"hi":[1],"vars":{"has_next":"True"},"out":["[หน้า 1 โหลดแล้ว]","[หน้า 2 โหลดแล้ว]"],"note":"วนรอบใหม่ — หน้าที่ 2"},
+          {"hi":[4,5],"vars":{"has_next":"False"},"out":["[หน้า 1 โหลดแล้ว]","[หน้า 2 โหลดแล้ว]"],"note":"เช็คปุ่ม Next → disabled แล้ว → has_next = False"},
+          {"hi":[6],"vars":{"has_next":"False"},"out":["[หน้า 1 โหลดแล้ว]","[หน้า 2 โหลดแล้ว]"],"note":"IF not False → True → BREAK หมดทุกหน้าแล้ว"},
+          {"hi":[8],"vars":{"has_next":"False"},"out":["[หน้า 1 โหลดแล้ว]","[หน้า 2 โหลดแล้ว]"],"note":"END — loop จบ ทำงานต่อได้เลย"}
+        ]
+      }'></div>
+    </div>
+
+    <pre><code class="language-robotframework">*** Keywords ***
+Find Order On Any Page
+    [Arguments]    ${order_id}
+    WHILE    True    limit=20
+        Wait Until Element Is Visible    css=.order-list
+
+        # ตรวจหน้าปัจจุบัน
+        ${found}=    Run Keyword And Return Status
+        ...    Element Should Contain    css=.order-list    ${order_id}
+        IF    ${found}    BREAK
+
+        # เช็คว่ามีหน้าถัดไปไหม
+        ${has_next}=    Run Keyword And Return Status
+        ...    Element Should Be Visible    css=button.next-page:not([disabled])
+        IF    not ${has_next}    BREAK
+
+        Click Element    css=button.next-page
+    END
+
+    Should Be True    ${found}    ไม่พบ order ${order_id} ในทุกหน้า</code></pre>
+
+    <div class="info-box">
+      <strong>ตั้ง limit ไว้เสมอ</strong> — ถ้า pagination มี bug แล้วปุ่ม Next ไม่ disabled ทั้งที่หมดแล้ว WHILE จะวนไม่หยุด <code>limit=20</code> ทำให้ test fail แทนที่จะค้างตลอด
+    </div>
+  </div>
+
+  <div class="quiz">
+    <h3>🧠 เช็คความเข้าใจ</h3>
+    <div class="quiz-item">
+      <p class="q-text"><span>ข้อ 1.</span> <code>Run Keyword And Return Status</code> ต่างจาก keyword ปกติยังไง? ทำไมถึงต้องใช้ใน pattern เหล่านี้?</p>
+      <details class="ans"><summary>ดูเฉลย</summary>
+        <div class="ans-body">keyword ปกติเมื่อ fail จะหยุดการทดสอบทันที | Run Keyword And Return Status จะ "จับ" ผลนั้นไว้แล้วคืน True/False แทน ทำให้ใช้ใน IF ได้โดยไม่หยุดทดสอบ — เหมาะกับสถานการณ์ที่ fail เป็นเรื่องปกติ เช่น spinner อาจยังไม่หาย หรือ click อาจยังไม่ติด</div>
+      </details>
+    </div>
+    <div class="quiz-item">
+      <p class="q-text"><span>ข้อ 2.</span> ถ้า <code>Get WebElements</code> ไม่เจอ element เลย แล้วไม่ได้ใส่ <code>Should Not Be Empty</code> ไว้ก่อน FOR — test จะเป็นยังไง?</p>
+      <details class="ans"><summary>ดูเฉลย</summary>
+        <div class="ans-body">test ผ่าน — FOR ไม่ทำงานเลย ไม่มี error แต่นั่นหมายความว่าไม่ได้ตรวจอะไรเลย ผลคือ test ไม่มีความหมาย ดูเหมือนผ่านแต่จริงๆ แล้ว miss ปัญหาไปหมด</div>
+      </details>
+    </div>
+    <div class="quiz-item">
+      <p class="q-text"><span>ข้อ 3.</span> Pattern Retry กับ Pattern WHILE Spinner ต่างกันยังไง? แต่ละ pattern แก้ปัญหาอะไร?</p>
+      <details class="ans"><summary>ดูเฉลย</summary>
+        <div class="ans-body"><strong>WHILE Spinner</strong> — รอให้ระบบพร้อมก่อนทำต่อ ไม่รู้ว่าจะรอนานแค่ไหน | <strong>Retry</strong> — ลอง action ซ้ำในจำนวนครั้งที่จำกัด เพราะ action นั้นบางครั้งทำไม่ได้ครั้งแรก ต่างกันตรงที่ Spinner รอ passive / Retry ลอง active</div>
+      </details>
+    </div>
+  </div>
+
+  <div class="page-nav">
+    <a href="04-list.html">← บทที่ 4 — List ใน RF</a>
+    <a href="exercises.html" class="next"><span class="pn-label">ถัดไป</span>แบบฝึกหัด →</a>
+  </div>
+</div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-robotframework.min.js"></script>
+<script src="anim.js"></script>
+</body></html>

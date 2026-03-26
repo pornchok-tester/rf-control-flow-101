@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>บทที่ 4: List ใน RF — RF Control Flow</title>
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+</head>
+<body>
+<aside class="sidebar">
+  <div class="sidebar-header">
+    <div class="sidebar-title">Robot Framework</div>
+    <div class="sidebar-subtitle">Control Flow · v2</div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-label">เนื้อหา</div>
+    <a href="index.html">🏠 Overview</a>
+    <a href="01-if-else.html">🔀 บทที่ 1 — IF / ELSE</a>
+    <a href="02-for-loop.html">🔁 บทที่ 2 — FOR Loop</a>
+    <a href="03-while-loop.html">⏳ บทที่ 3 — WHILE + BREAK</a>
+    <a href="04-list.html" class="active">📦 บทที่ 4 — List ใน RF</a>
+    <a href="05-selenium.html">🌐 บทที่ 5 — Selenium จริง</a>
+    <div class="nav-label">ฝึกหัด</div>
+    <a href="exercises.html">✏️ แบบฝึกหัด</a>
+    <a href="glossary.html">📖 Glossary</a>
+  </nav>
+  <div class="sidebar-footer">RF 7.3.2 · Python 3.14</div>
+</aside>
+<div class="main"><div class="content">
+
+  <div class="pre-ch">
+    <div class="pre-ch-label">🔄 ทบทวนบทที่แล้ว</div>
+    <p style="font-size:14px;">WHILE loop หยุดทำงานเมื่อไหร่? ถ้าลืม update ตัวแปร condition จะเกิดอะไรขึ้น?</p>
+    <details class="reveal"><summary>ดูเฉลย</summary>
+      <div class="reveal-body">หยุดเมื่อ condition เป็น False หรือเจอ BREAK | ถ้าลืม update ตัวแปร condition จะเป็น True ตลอด วนจนถึง limit แล้ว FAIL</div>
+    </details>
+  </div>
+
+  <div class="ch-label">บทที่ 4</div>
+  <h1>List ใน Robot Framework</h1>
+  <span class="badge badge-green">✅ RF 4.0+</span>
+
+  <div class="obj-box">
+    <h4>🎯 อ่านจบแล้วทำได้</h4>
+    <ul>
+      <li>เข้าใจว่า List คืออะไรและเก็บอะไรได้บ้าง</li>
+      <li>สร้าง List และดูจำนวน item ด้วย Get Length</li>
+      <li>วนผ่านทุก item ด้วย FOR IN</li>
+      <li>เชื่อมต่อความรู้นี้กับ Get WebElements ในบทถัดไปได้</li>
+    </ul>
+  </div>
+
+  <h2>ทำไมต้องรู้เรื่อง List?</h2>
+  <p>ในบทถัดไปจะเจอ keyword ชื่อ <code>Get WebElements</code> — keyword นี้คืนค่ากลับมาเป็น <strong>List ของ element</strong> บนหน้าเว็บ ถ้าไม่รู้ว่า List คืออะไร จะงงตั้งแต่บรรทัดแรก</p>
+  <p>บทนี้สอนแค่ที่จำเป็นสำหรับบทถัดไป — ไม่เกิน 10 นาที</p>
+
+  <h2>List คืออะไร?</h2>
+  <p>List คือ <strong>กล่องที่เก็บของหลายชิ้นเรียงกัน</strong> เหมือน checklist ทดสอบที่มีหลาย step — แต่ละ step มีเลขที่ของตัวเอง</p>
+
+  <div class="info-box">
+    <strong>จุดสำคัญ:</strong> เลขที่ของ item ใน List (เรียกว่า <strong>index</strong>) เริ่มจาก <strong>0</strong> เสมอ ไม่ใช่ 1
+    <br><br>
+    <code>@{fruits} = [apple, banana, cherry]</code><br>
+    index 0 = apple &nbsp;|&nbsp; index 1 = banana &nbsp;|&nbsp; index 2 = cherry
+  </div>
+
+  <h2>สร้าง List</h2>
+  <p>ใช้ keyword <code>Create List</code> แล้วใส่ค่าที่ต้องการเรียงกัน:</p>
+
+  <pre><code class="language-robotframework">*** Test Cases ***
+ตัวอย่าง List
+    @{fruits}=    Create List    apple    banana    cherry
+    Log    ${fruits}    # [apple, banana, cherry]
+    Log    ${fruits}[0]    # apple
+    Log    ${fruits}[1]    # banana
+    Log    ${fruits}[2]    # cherry</code></pre>
+
+  <div class="out-box"><div class="out-label">Output</div>[apple, banana, cherry]<br>apple<br>banana<br>cherry</div>
+
+  <div class="info-box">
+    <strong>@{} กับ ${} ต่างกันยังไง?</strong><br>
+    <code>@{fruits}</code> — ใช้ตอนสร้าง หรือตอน FOR เพื่อ "แตก" list ออกเป็น item ทีละตัว<br>
+    <code>${fruits}</code> — ใช้ตอนอ้างอิง list ทั้งก้อน เช่น ส่งให้ keyword อื่น หรือดึงด้วย index <code>${fruits}[0]</code>
+  </div>
+
+  <h2>ดูจำนวน item — Get Length</h2>
+  <pre><code class="language-robotframework">@{browsers}=    Create List    Chrome    Firefox    Edge
+${count}=    Get Length    ${browsers}
+Log    มี ${count} browser    # มี 3 browser</code></pre>
+
+  <h2>FOR IN — วนผ่านทุก item</h2>
+  <p>นี่คือสิ่งที่เรียนไปในบทที่ 2 แล้ว แค่ตอนนี้รู้ว่าสิ่งที่ FOR วนผ่านนั้นคือ List นั่นเอง:</p>
+
+  <div class="stepper">
+    <div class="st-header">FOR IN — วนผ่าน list ทีละ item</div>
+    <div data-stepper='{
+      "code": "@{status}=    Create List    Pass    Fail    Pass\n\nFOR    ${s}    IN    @{status}\n    Log    ผลลัพธ์: ${s}\nEND",
+      "steps": [
+        {"hi":[1],"vars":{"status":"[Pass, Fail, Pass]"},"out":[],"note":"สร้าง list มี 3 items"},
+        {"hi":[3],"vars":{"status":"[Pass, Fail, Pass]","s":"Pass"},"out":[],"note":"รอบที่ 1: ดึง item แรก (index 0) = Pass"},
+        {"hi":[4],"vars":{"status":"[Pass, Fail, Pass]","s":"Pass"},"out":["ผลลัพธ์: Pass"],"note":"Log ผลลัพธ์: Pass"},
+        {"hi":[3],"vars":{"status":"[Pass, Fail, Pass]","s":"Fail"},"out":["ผลลัพธ์: Pass"],"note":"รอบที่ 2: ดึง item ถัดไป (index 1) = Fail"},
+        {"hi":[4],"vars":{"status":"[Pass, Fail, Pass]","s":"Fail"},"out":["ผลลัพธ์: Pass","ผลลัพธ์: Fail"],"note":"Log ผลลัพธ์: Fail"},
+        {"hi":[3],"vars":{"status":"[Pass, Fail, Pass]","s":"Pass"},"out":["ผลลัพธ์: Pass","ผลลัพธ์: Fail"],"note":"รอบที่ 3: ดึง item สุดท้าย (index 2) = Pass"},
+        {"hi":[4],"vars":{"status":"[Pass, Fail, Pass]","s":"Pass"},"out":["ผลลัพธ์: Pass","ผลลัพธ์: Fail","ผลลัพธ์: Pass"],"note":"Log ผลลัพธ์: Pass"},
+        {"hi":[5],"vars":{"status":"[Pass, Fail, Pass]","s":"Pass"},"out":["ผลลัพธ์: Pass","ผลลัพธ์: Fail","ผลลัพธ์: Pass"],"note":"หมดทุก item แล้ว ออกจาก loop"}
+      ]
+    }'></div>
+  </div>
+
+  <h2>List ว่าง — ต้องระวัง</h2>
+  <p>ถ้า List ไม่มี item เลย FOR จะไม่ทำงานเลย ไม่มี error — เงียบๆ และผ่านไปเลย:</p>
+
+  <pre><code class="language-robotframework">@{empty}=    Create List    # ไม่มี item
+FOR    ${x}    IN    @{empty}
+    Log    บรรทัดนี้ไม่มีทางรัน
+END
+Log    มาถึงนี่เลย โดยไม่ผ่าน loop</code></pre>
+
+  <div class="info-box">
+    ถ้าต้องการให้ test <strong>fail</strong> เมื่อ List ว่าง ให้เช็คก่อน:<br><br>
+    <code>Should Not Be Empty    ${my_list}    ไม่พบข้อมูลใดเลย</code>
+  </div>
+
+  <h2>เชื่อมกับบทถัดไป</h2>
+  <p><code>Get WebElements</code> ใน SeleniumLibrary ทำงานแบบเดียวกันทุกอย่าง — แค่แทนที่จะสร้าง list เอง มันดึง element จากหน้าเว็บมาให้เป็น list แล้วเราก็วนผ่านด้วย FOR เหมือนกันเลย:</p>
+
+  <pre><code class="language-robotframework"># แทนที่จะสร้าง list เอง...
+@{fruits}=    Create List    apple    banana    cherry
+
+# Get WebElements ดึง list จากหน้าเว็บมาให้เลย
+@{buttons}=    Get WebElements    css=.submit-button</code></pre>
+
+  <p>นั่นคือทั้งหมดที่ต้องรู้ก่อนไปบทถัดไป</p>
+
+  <div class="quiz">
+    <h3>🧠 เช็คความเข้าใจ</h3>
+    <div class="quiz-item">
+      <p class="q-text"><span>ข้อ 1.</span> List มี 5 item — item สุดท้ายอยู่ที่ index อะไร?</p>
+      <details class="ans"><summary>ดูเฉลย</summary>
+        <div class="ans-body">index 4 — เพราะ index เริ่มจาก 0 ดังนั้น 5 item = index 0, 1, 2, 3, 4</div>
+      </details>
+    </div>
+    <div class="quiz-item">
+      <p class="q-text"><span>ข้อ 2.</span> ถ้า List ว่างแล้ว FOR วนผ่าน จะเกิดอะไรขึ้น?</p>
+      <details class="ans"><summary>ดูเฉลย</summary>
+        <div class="ans-body">ไม่มี error — FOR แค่ไม่ทำงานเลยเงียบๆ ถ้าต้องการให้ fail เมื่อว่าง ต้องใช้ Should Not Be Empty เองก่อน loop</div>
+      </details>
+    </div>
+    <div class="quiz-item">
+      <p class="q-text"><span>ข้อ 3.</span> ต่างกันยังไงระหว่าง @{list} กับ ${list}?</p>
+      <details class="ans"><summary>ดูเฉลย</summary>
+        <div class="ans-body">@{list} ใช้ตอน FOR เพื่อแตก list ออกเป็น item ทีละตัว | ${list} ใช้ตอนอ้างอิง list ทั้งก้อน เช่น Get Length ${list} หรือ ${list}[0]</div>
+      </details>
+    </div>
+  </div>
+
+  <div class="page-nav">
+    <a href="03-while-loop.html">← บทที่ 3 — WHILE</a>
+    <a href="05-selenium.html" class="next"><span class="pn-label">บทถัดไป</span>บทที่ 5 — Selenium →</a>
+  </div>
+</div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-robotframework.min.js"></script>
+<script src="anim.js"></script>
+</body></html>
