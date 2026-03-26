@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RF Control Flow — Overview</title>
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sidebar-header">
+    <div class="sidebar-title">Robot Framework</div>
+    <div class="sidebar-subtitle">Control Flow · RF 5.0+</div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">เนื้อหา</div>
+    <a href="index.html" class="active"><span class="nav-icon">🏠</span> Overview</a>
+    <a href="01-if-else.html"><span class="nav-icon">🔀</span> บทที่ 1 — IF / ELSE</a>
+    <a href="02-for-loop.html"><span class="nav-icon">🔁</span> บทที่ 2 — FOR Loop</a>
+    <a href="03-while-loop.html"><span class="nav-icon">⏳</span> บทที่ 3 — WHILE + BREAK</a>
+    <div class="nav-section-label">ฝึกหัด</div>
+    <a href="exercises.html"><span class="nav-icon">✏️</span> แบบฝึกหัด</a>
+    <a href="glossary.html"><span class="nav-icon">📖</span> Glossary</a>
+  </nav>
+  <div class="sidebar-footer">Tested: RF 7.3.2 / Python 3.14</div>
+</aside>
+
+<div class="main">
+<div class="content">
+
+  <div class="chapter-label">เริ่มต้น</div>
+  <h1>Control Flow ใน Robot Framework</h1>
+
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:28px;">
+    <span class="version-badge">✅ Tested: RF 7.3.2</span>
+    <span class="version-badge rf-badge">⚠️ ต้องใช้ RF 5.0+</span>
+  </div>
+
+  <p>เอกสารชุดนี้ครอบคลุม <strong>4 เรื่องหลัก</strong> ที่ทำให้ test ของคุณฉลาดขึ้น: ตัดสินใจตามเงื่อนไข วนซ้ำข้อมูล รอจนกว่าจะสำเร็จ และควบคุม loop ให้ทำงานตามต้องการ</p>
+
+  <h2>Prerequisites</h2>
+
+  <h3>1. โครงสร้างพื้นฐานของ RF</h3>
+  <p>ไฟล์ <code>.robot</code> แบ่งเป็น section ด้วย <code>*** ... ***</code>:</p>
+
+  <pre><code class="language-robotframework">*** Settings ***
+Library    Collections          # import library เพิ่มเติม
+
+*** Variables ***
+${NAME}    Alice                # ตัวแปร global
+
+*** Keywords ***
+Say Hello
+    [Arguments]    ${name}      # keyword รับ argument
+    Log    Hello, ${name}!      # สั่งให้ทำอะไรบางอย่าง
+
+*** Test Cases ***
+My First Test
+    Say Hello    Bob            # เรียกใช้ keyword</code></pre>
+
+  <ul>
+    <li><strong>Test Case</strong> คือหน่วยทดสอบ 1 ชุด — RF รันทีละ Test Case</li>
+    <li><strong>Keyword</strong> คือ "คำสั่งที่นิยามเอง" เหมือน function — เรียกซ้ำได้</li>
+    <li><strong><code>*** Settings ***</code></strong> ใช้ import Library หรือตั้งค่า suite</li>
+  </ul>
+
+  <h3>2. ตัวแปร <code>${variable}</code> และ <code>@{list}</code></h3>
+
+  <pre><code class="language-robotframework"># ${variable} — ตัวแปรทั่วไป
+${score}=    Set Variable    85
+${name}=     Set Variable    Alice
+${flag}=     Set Variable    ${True}
+
+# @{list} — ตัวแปรแบบ list
+@{fruits}=    Create List    apple    banana    cherry
+Log    ${fruits}[0]    # → apple</code></pre>
+
+  <div class="analogy-box" style="margin-top:4px;">
+    <div class="analogy-title">⚠️ จุดสำคัญ</div>
+    <p style="font-size:14px;"><code>@{fruits}</code> ใน FOR loop จะ <strong>unpack</strong> รายการออกมาทีละชิ้น แต่ <code>${fruits}</code> จะส่ง list ทั้งก้อนเป็น item เดียว — เรื่องนี้จะเจออีกในบทที่ 2</p>
+  </div>
+
+  <h3>3. Built-in Keywords ที่ใช้บ่อยในเอกสารนี้</h3>
+
+  <table>
+    <tr><th>Keyword</th><th>ทำอะไร</th><th>ตัวอย่าง</th></tr>
+    <tr><td><code>Log</code></td><td>print ข้อความลง log</td><td><code>Log    Hello World</code></td></tr>
+    <tr><td><code>Set Variable</code></td><td>กำหนดค่าให้ตัวแปร</td><td><code>${x}=    Set Variable    10</code></td></tr>
+    <tr><td><code>Evaluate</code></td><td>คำนวณ Python expression</td><td><code>${sum}=    Evaluate    ${a} + ${b}</code></td></tr>
+    <tr><td><code>Should Be Equal</code></td><td>assert ว่าค่าสองอันเท่ากัน</td><td><code>Should Be Equal    ${x}    ${y}</code></td></tr>
+    <tr><td><code>Create List</code></td><td>สร้าง list ใหม่</td><td><code>${items}=    Create List    a    b    c</code></td></tr>
+    <tr><td><code>Get Length</code></td><td>นับจำนวน item ใน list</td><td><code>${len}=    Get Length    ${items}</code></td></tr>
+    <tr><td><code>Run Keyword And Return Status</code></td><td>รัน keyword แล้วคืน True/False</td><td><code>${ok}=    Run Keyword And Return Status    ...</code></td></tr>
+  </table>
+
+  <p><strong>หมายเหตุ:</strong> <code>Evaluate</code> สำคัญมากใน WHILE loop เพราะใช้คำนวณค่าใหม่ทุกรอบ เช่น <code>${counter}=    Evaluate    ${counter} + 1</code></p>
+
+  <h2>กฎสำคัญก่อนเริ่ม</h2>
+
+  <table>
+    <tr><th>#</th><th>กฎ</th><th>ตัวอย่าง</th></tr>
+    <tr>
+      <td><strong>1</strong></td>
+      <td>ทุก keyword ต้องเป็น UPPERCASE</td>
+      <td><code>IF  ELSE IF  ELSE  FOR  WHILE  BREAK  CONTINUE  END</code></td>
+    </tr>
+    <tr>
+      <td><strong>2</strong></td>
+      <td>ทุก block ต้องปิดด้วย <code>END</code></td>
+      <td><code>IF ... END</code>, <code>FOR ... END</code>, <code>WHILE ... END</code></td>
+    </tr>
+    <tr>
+      <td><strong>3</strong></td>
+      <td>Indent 4 spaces ภายใน block</td>
+      <td>keyword ข้างใน IF/FOR/WHILE ต้องเว้น 4 spaces</td>
+    </tr>
+    <tr>
+      <td><strong>4</strong></td>
+      <td>Condition ใช้ Python expression</td>
+      <td><code>IF    ${x} > 10 and ${y} &lt; 5</code></td>
+    </tr>
+  </table>
+
+  <h2>แผนการเรียน</h2>
+
+  <div style="display:grid;gap:12px;margin-top:4px;">
+    <a href="01-if-else.html" style="display:flex;align-items:center;gap:16px;padding:16px 20px;background:#fff;border:1px solid #e2e8f0;border-radius:10px;text-decoration:none;color:#1e293b;transition:all 0.15s;" onmouseover="this.style.borderColor='#3b82f6'" onmouseout="this.style.borderColor='#e2e8f0'">
+      <span style="font-size:28px;">🔀</span>
+      <div>
+        <div style="font-weight:700;font-size:15px;">บทที่ 1 — IF / ELSE</div>
+        <div style="font-size:13px;color:#64748b;margin-top:2px;">ตัดสินใจตามเงื่อนไข • IF block • ELSE IF • Inline IF</div>
+      </div>
+      <span style="margin-left:auto;color:#94a3b8;">→</span>
+    </a>
+    <a href="02-for-loop.html" style="display:flex;align-items:center;gap:16px;padding:16px 20px;background:#fff;border:1px solid #e2e8f0;border-radius:10px;text-decoration:none;color:#1e293b;transition:all 0.15s;" onmouseover="this.style.borderColor='#3b82f6'" onmouseout="this.style.borderColor='#e2e8f0'">
+      <span style="font-size:28px;">🔁</span>
+      <div>
+        <div style="font-weight:700;font-size:15px;">บทที่ 2 — FOR Loop</div>
+        <div style="font-size:13px;color:#64748b;margin-top:2px;">IN • IN RANGE • IN ENUMERATE • IN ZIP</div>
+      </div>
+      <span style="margin-left:auto;color:#94a3b8;">→</span>
+    </a>
+    <a href="03-while-loop.html" style="display:flex;align-items:center;gap:16px;padding:16px 20px;background:#fff;border:1px solid #e2e8f0;border-radius:10px;text-decoration:none;color:#1e293b;transition:all 0.15s;" onmouseover="this.style.borderColor='#3b82f6'" onmouseout="this.style.borderColor='#e2e8f0'">
+      <span style="font-size:28px;">⏳</span>
+      <div>
+        <div style="font-weight:700;font-size:15px;">บทที่ 3 — WHILE + BREAK + CONTINUE</div>
+        <div style="font-size:13px;color:#64748b;margin-top:2px;">วนจนกว่าเงื่อนไขจะเปลี่ยน • ควบคุม loop กลางคัน</div>
+      </div>
+      <span style="margin-left:auto;color:#94a3b8;">→</span>
+    </a>
+    <a href="exercises.html" style="display:flex;align-items:center;gap:16px;padding:16px 20px;background:#fff;border:1px solid #e2e8f0;border-radius:10px;text-decoration:none;color:#1e293b;transition:all 0.15s;" onmouseover="this.style.borderColor='#3b82f6'" onmouseout="this.style.borderColor='#e2e8f0'">
+      <span style="font-size:28px;">✏️</span>
+      <div>
+        <div style="font-weight:700;font-size:15px;">แบบฝึกหัด</div>
+        <div style="font-size:13px;color:#64748b;margin-top:2px;">9 โจทย์ • Recall → Application → Synthesis • พร้อมเฉลย</div>
+      </div>
+      <span style="margin-left:auto;color:#94a3b8;">→</span>
+    </a>
+  </div>
+
+  <div class="page-nav">
+    <span></span>
+    <a href="01-if-else.html" class="next">
+      <div><span class="label">บทถัดไป</span>บทที่ 1 — IF / ELSE →</div>
+    </a>
+  </div>
+
+</div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-robotframework.min.js"></script>
+</body>
+</html>

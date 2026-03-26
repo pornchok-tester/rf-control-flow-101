@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>บทที่ 1: IF / ELSE — RF Control Flow</title>
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sidebar-header">
+    <div class="sidebar-title">Robot Framework</div>
+    <div class="sidebar-subtitle">Control Flow · RF 5.0+</div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">เนื้อหา</div>
+    <a href="index.html"><span class="nav-icon">🏠</span> Overview</a>
+    <a href="01-if-else.html" class="active"><span class="nav-icon">🔀</span> บทที่ 1 — IF / ELSE</a>
+    <a href="02-for-loop.html"><span class="nav-icon">🔁</span> บทที่ 2 — FOR Loop</a>
+    <a href="03-while-loop.html"><span class="nav-icon">⏳</span> บทที่ 3 — WHILE + BREAK</a>
+    <div class="nav-section-label">ฝึกหัด</div>
+    <a href="exercises.html"><span class="nav-icon">✏️</span> แบบฝึกหัด</a>
+    <a href="glossary.html"><span class="nav-icon">📖</span> Glossary</a>
+  </nav>
+  <div class="sidebar-footer">Tested: RF 7.3.2 / Python 3.14</div>
+</aside>
+
+<div class="main">
+<div class="content">
+
+  <div class="chapter-label">บทที่ 1</div>
+  <h1>IF / ELSE IF / ELSE และ Inline IF</h1>
+  <span class="version-badge">✅ RF 4.0+ (Inline IF: RF 5.0+)</span>
+
+  <div class="objective-box">
+    <h4>🎯 อ่านจบแล้วทำได้</h4>
+    <ul>
+      <li>เขียน IF block ที่ทำงานตามเงื่อนไข</li>
+      <li>ต่อ ELSE IF และ ELSE สำหรับหลายกรณี</li>
+      <li>ใช้ Inline IF เมื่อต้องการโค้ดสั้นกว่า</li>
+      <li>หลีกเลี่ยง mistake ที่พบบ่อยที่สุดใน IF</li>
+    </ul>
+  </div>
+
+  <h2>ทำไมต้องมี IF?</h2>
+  <p>ใน test จริง ผลลัพธ์ที่คาดหวังมักขึ้นอยู่กับบริบท เช่น:</p>
+  <ul>
+    <li>ถ้า environment คือ production → check ค่าหนึ่ง</li>
+    <li>ถ้าเป็น staging → check อีกค่าหนึ่ง</li>
+  </ul>
+  <p>ถ้าไม่มี IF เราต้องเขียน test แยกทุก case ซึ่งซ้ำซ้อนมาก</p>
+
+  <div class="analogy-box">
+    <div class="analogy-title">🚦 Analogy: ไฟจราจร</div>
+    <p>IF/ELSE เหมือนไฟจราจร — ไฟเขียว (IF true) รถวิ่ง, ไฟเหลือง (ELSE IF) ชะลอ, ไฟแดง (ELSE) หยุด</p>
+    <p>โค้ดอ่านเงื่อนไข<strong>จากบนลงล่าง</strong> เจอ condition แรกที่จริง → ทำ แล้ว<strong>ข้ามอันที่เหลือทั้งหมด</strong></p>
+    <div class="analogy-warning">
+      ⚠️ ถ้าเชื่อ analogy นี้ 100% จะเข้าใจผิดว่า: "RF หยุดทำงานหลัง IF" — จริงๆ RF ยังรัน keyword ที่อยู่<strong>นอก</strong> IF block ต่อไปหลัง END เสมอ
+    </div>
+  </div>
+
+  <h2>1. IF Block พื้นฐาน</h2>
+
+  <pre><code class="language-robotframework">IF    ${score} >= 90
+    Log    ผ่านดีมาก
+END</code></pre>
+
+  <p><strong>กฎ:</strong> ต้องมี <code>END</code> ปิดทุกครั้ง ถ้าไม่มี RF จะ error ทันที</p>
+
+  <h2>2. IF + ELSE IF + ELSE</h2>
+
+  <pre><code class="language-robotframework">*** Test Cases ***
+Grade Check
+    ${score}=    Set Variable    75
+
+    IF    ${score} >= 90
+        Log    A
+    ELSE IF    ${score} >= 80
+        Log    B
+    ELSE IF    ${score} >= 70
+        Log    C
+    ELSE
+        Log    F
+    END</code></pre>
+
+  <div class="output-box">
+    <div class="output-label">Output</div>
+    C
+  </div>
+
+  <p><strong>สำคัญ:</strong> RF ประเมินจากบนลงล่าง เจอ condition แรกที่ <code>True</code> → รัน แล้วข้าม ELSE IF/ELSE ที่เหลือทั้งหมด</p>
+
+  <div class="analogy-box" style="background:#fff7ed;border-color:#fed7aa;border-left-color:#f97316;">
+    <div class="analogy-title" style="color:#c2410c;">💡 Tip: เรียง condition จากเข้มงวดที่สุด</div>
+    <p>ถ้าเรียง condition จากน้อยไปมาก เช่น <code>>= 70</code> ก่อน <code>>= 90</code> คะแนน 95 จะเข้า branch <code>C</code> ทันที ไม่มีทางได้ <code>A</code> เลย</p>
+  </div>
+
+  <h2>3. Condition กับตัวแปรสตริง</h2>
+  <p>เมื่อ compare string ต้องใส่ single quote รอบ <code>${variable}</code>:</p>
+
+  <pre><code class="language-robotframework">*** Test Cases ***
+Environment Check
+    ${env}=    Set Variable    production
+
+    IF    '${env}' == 'production'
+        Log    กำลังทดสอบบน Production!
+    ELSE
+        Log    Environment: ${env}
+    END</code></pre>
+
+  <div class="mistakes-section">
+    <div class="mistake-item">
+      <div class="wrong">❌ ผิด — ขาด quote รอบ string</div>
+      <pre><code class="language-robotframework">IF    ${env} == 'production'</code></pre>
+      <div class="correct">✅ ถูก — ใส่ quote ทั้งสองฝั่ง</div>
+      <pre><code class="language-robotframework">IF    '${env}' == 'production'</code></pre>
+      <div class="mistake-source">เหตุผล: <code>${env}</code> ถูก resolve เป็น string ก่อน evaluate — การใส่ quote ทำให้มั่นใจว่า compare string กับ string เสมอ</div>
+    </div>
+  </div>
+
+  <h2>4. Inline IF (RF 5.0+)</h2>
+  <p>ใช้เมื่อต้องการรัน <strong>keyword เดียว</strong> ตามเงื่อนไข — ไม่ต้องมี <code>END</code>:</p>
+
+  <pre><code class="language-robotframework">*** Test Cases ***
+Inline IF Demo
+    ${x}=    Set Variable    10
+
+    # รูปแบบพื้นฐาน — keyword เดียว
+    IF    ${x} > 5    Log    x มากกว่า 5
+
+    # มี ELSE ได้
+    IF    ${x} > 5    Log    big    ELSE    Log    small
+
+    # รับค่า return ได้
+    ${label}=    IF    ${x} > 5    Set Variable    big    ELSE    Set Variable    small
+    Log    ${label}    # → big</code></pre>
+
+  <table style="margin-top:16px;">
+    <tr><th>เมื่อไหร่ใช้</th><th>ตัวเลือก</th></tr>
+    <tr><td>Keyword เดียว, condition เดียว, logic ไม่ซับซ้อน</td><td>Inline IF</td></tr>
+    <tr><td>มี ELSE IF, หรือหลาย keyword ใน branch</td><td>Block IF + END</td></tr>
+  </table>
+
+  <h2>Common Mistakes</h2>
+  <div class="mistakes-section">
+
+    <div class="mistake-item">
+      <div class="wrong">❌ ลืม END</div>
+      <pre><code class="language-robotframework">IF    ${x} > 0
+    Log    positive
+# ไม่มี END → Robot Framework error ทันที</code></pre>
+      <div class="correct">✅ ปิดด้วย END เสมอ</div>
+      <pre><code class="language-robotframework">IF    ${x} > 0
+    Log    positive
+END</code></pre>
+      <div class="mistake-source">source: RF User Guide — "The END token closes the IF/ELSE structure"</div>
+    </div>
+
+    <div class="mistake-item">
+      <div class="wrong">❌ ใช้ตัวเล็ก</div>
+      <pre><code class="language-robotframework">if    ${x} > 0    # ← ผิด!</code></pre>
+      <div class="correct">✅ UPPERCASE ทั้งหมด</div>
+      <pre><code class="language-robotframework">IF    ${x} > 0</code></pre>
+      <div class="mistake-source">source: RF User Guide — keywords are case-sensitive</div>
+    </div>
+
+    <div class="mistake-item">
+      <div class="wrong">❌ Nested IF แต่ END ไม่พอ</div>
+      <pre><code class="language-robotframework">IF    ${a} > 0
+    IF    ${b} > 0
+        Log    both positive
+    END
+# ลืม END ชั้นนอก → error</code></pre>
+      <div class="correct">✅ END ทุก level</div>
+      <pre><code class="language-robotframework">IF    ${a} > 0
+    IF    ${b} > 0
+        Log    both positive
+    END
+END    # ← END ของ IF ชั้นนอก</code></pre>
+      <div class="mistake-source">source: RF User Guide — each nested block requires its own END</div>
+    </div>
+
+  </div>
+
+  <div class="quiz-section">
+    <h3>🧠 ทดสอบความเข้าใจ — ตอบก่อนดูเฉลย</h3>
+
+    <div class="quiz-item">
+      <p class="question"><span>ข้อ 1.</span> ถ้าเขียน <code>IF    ${score} >= 70</code> แล้วมี <code>ELSE IF    ${score} >= 90</code> ต่อมา — ถ้า score = 95 จะเข้า branch ไหน? เพราะอะไร?</p>
+      <details class="answer">
+        <summary>ดูเฉลย</summary>
+        <div class="answer-body">
+          <p>เข้า <code>IF</code> (<code>>= 70</code>) ทันที เพราะ RF ประเมินจากบนลงล่าง เจอ <code>True</code> ตัวแรกก็หยุด — <code>ELSE IF >= 90</code> จะไม่ถูกประเมินเลย</p>
+          <p><strong>แก้ไข:</strong> เรียง condition จากเข้มงวดที่สุดก่อน — ใส่ <code>>= 90</code> ไว้บนสุด</p>
+        </div>
+      </details>
+    </div>
+
+    <div class="quiz-item">
+      <p class="question"><span>ข้อ 2.</span> Inline IF ต่างจาก block IF อย่างไร? ควรใช้อันไหนเมื่อไหร่?</p>
+      <details class="answer">
+        <summary>ดูเฉลย</summary>
+        <div class="answer-body">
+          <p>Inline IF เขียนบรรทัดเดียว ไม่มี END เหมาะกับ keyword เดียว / condition เดียว</p>
+          <p>Block IF ใช้เมื่อต้องการหลาย keyword ใน branch หรือมี ELSE IF</p>
+        </div>
+      </details>
+    </div>
+
+    <div class="quiz-item">
+      <p class="question"><span>ข้อ 3.</span> ทำไมต้องใส่ <code>'</code> รอบ <code>${variable}</code> เมื่อ compare กับ string?</p>
+      <details class="answer">
+        <summary>ดูเฉลย</summary>
+        <div class="answer-body">
+          <p><code>${env}</code> ถูก resolve เป็น string ก่อน evaluate — ถ้าไม่ใส่ quote Python expression อาจ parse ผิด การใส่ quote ทำให้มั่นใจว่า compare string กับ string เสมอ</p>
+        </div>
+      </details>
+    </div>
+  </div>
+
+  <div class="page-nav">
+    <a href="index.html">← Overview</a>
+    <a href="02-for-loop.html" class="next">
+      <div><span class="label">บทถัดไป</span>บทที่ 2 — FOR Loop →</div>
+    </a>
+  </div>
+
+</div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-robotframework.min.js"></script>
+</body>
+</html>
