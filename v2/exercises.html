@@ -144,68 +144,90 @@ Test File Size Classification
 
   <div class="exercise-item">
     <span class="exercise-badge badge-recall">📝 Recall</span>
-    <div class="exercise-title">ข้อ 4 — FOR IN ENUMERATE vs FOR IN</div>
-    <p>อธิบายให้เพื่อนที่ไม่รู้จัก RF ฟังว่า FOR IN ENUMERATE ต่างจาก FOR IN อย่างไร และควรใช้เมื่อไหร่ (ใช้ภาษาไทยธรรมดา ไม่ต้องมีโค้ด)</p>
+    <div class="exercise-title">ข้อ 4 — FOR IN vs FOR IN RANGE</div>
+    <p>อธิบายว่า FOR IN กับ FOR IN RANGE ต่างกันยังไง และควรใช้อันไหนในสถานการณ์ต่อไปนี้ (ไม่ต้องมีโค้ด):</p>
+    <ul>
+      <li>วนผ่านรายชื่อ browser ทุกตัวที่มีใน list</li>
+      <li>ลอง submit form สูงสุด 5 ครั้ง</li>
+    </ul>
     <details class="answer">
       <summary>ดูเฉลย</summary>
       <div class="answer-body">
-        <p>FOR IN วนผ่าน list ปกติ เราได้แค่ตัว item เอง ไม่รู้ว่า item อยู่ตำแหน่งที่เท่าไหร่</p>
-        <p>FOR IN ENUMERATE เพิ่มตัวแปร index มาให้ด้วย เหมือนมีป้ายเลขกำกับทุก item</p>
-        <p>ใช้ ENUMERATE เมื่อต้องรู้ว่า item อยู่แถวที่เท่าไหร่ เช่น print "ข้อที่ 1/2/3" หรือ check ข้อมูลตามลำดับแถวในตาราง</p>
+        <p><strong>FOR IN</strong> — วนผ่านทุก item ใน list ที่มีอยู่ ไม่รู้ล่วงหน้าว่ามีกี่ตัวก็ได้</p>
+        <p><strong>FOR IN RANGE</strong> — วนตามจำนวนรอบที่กำหนด รู้ล่วงหน้าว่าจะวนกี่ครั้ง</p>
+        <p>วนผ่าน browser list → <strong>FOR IN</strong> เพราะมี list อยู่แล้ว</p>
+        <p>ลอง submit 5 ครั้ง → <strong>FOR IN RANGE    5</strong> เพราะรู้จำนวนรอบล่วงหน้า</p>
       </div>
     </details>
   </div>
 
   <div class="exercise-item">
     <span class="exercise-badge badge-application">💻 Application</span>
-    <div class="exercise-title">ข้อ 5 — แสดงรายชื่อเมืองพร้อมลำดับ</div>
-    <p>มี <code>@{cities}</code> = <code>["Bangkok", "Chiang Mai", "Phuket", "Khon Kaen"]</code></p>
-    <p>เขียน FOR loop ที่ log ออกมาแบบนี้ (index เริ่มที่ 1 ไม่ใช่ 0):</p>
-    <div class="output-box">
-      <div class="output-label">Expected Output</div>
-      เมืองที่ 1: Bangkok<br>
-      เมืองที่ 2: Chiang Mai<br>
-      เมืองที่ 3: Phuket<br>
-      เมืองที่ 4: Khon Kaen
-    </div>
+    <div class="exercise-title">ข้อ 5 — นับ Pass / Fail</div>
+    <p>เขียน keyword ชื่อ <code>Log Test Summary</code> ที่รับ <code>@{results}</code> (list ของ "Pass" หรือ "Fail") แล้ว:</p>
+    <ul>
+      <li>Log แต่ละผลลัพธ์ทีละบรรทัด</li>
+      <li>Log สรุปท้าย: <code>สรุป: Pass X | Fail Y</code></li>
+    </ul>
+    <p>ทดสอบกับ <code>Pass    Fail    Pass    Pass    Fail</code> (expect: Pass 3 | Fail 2)</p>
     <details class="answer">
       <summary>ดูเฉลย</summary>
       <div class="answer-body">
-        <pre><code class="language-robotframework">*** Test Cases ***
-City List
-    @{cities}=    Create List    Bangkok    Chiang Mai    Phuket    Khon Kaen
-    FOR    ${index}    ${city}    IN ENUMERATE    @{cities}    start=1
-        Log    เมืองที่ ${index}: ${city}
-    END</code></pre>
+        <pre><code class="language-robotframework">*** Keywords ***
+Log Test Summary
+    [Arguments]    @{results}
+    ${pass_count}=    Set Variable    0
+    ${fail_count}=    Set Variable    0
+    FOR    ${r}    IN    @{results}
+        Log    ${r}
+        IF    '${r}' == 'Pass'
+            ${pass_count}=    Evaluate    ${pass_count} + 1
+        ELSE
+            ${fail_count}=    Evaluate    ${fail_count} + 1
+        END
+    END
+    Log    สรุป: Pass ${pass_count} | Fail ${fail_count}
+
+*** Test Cases ***
+Test Log Summary
+    Log Test Summary    Pass    Fail    Pass    Pass    Fail</code></pre>
+        <div class="out-box" style="margin-top:10px;"><div class="out-label">Output</div>Pass<br>Fail<br>Pass<br>Pass<br>Fail<br>สรุป: Pass 3 | Fail 2</div>
       </div>
     </details>
   </div>
 
   <div class="exercise-item">
     <span class="exercise-badge badge-synthesis">🔬 Synthesis</span>
-    <div class="exercise-title">ข้อ 6 — Validate Users (ZIP + Safety)</div>
-    <p>ออกแบบ keyword ชื่อ <code>Validate Users</code> ที่รับ 2 list: <code>${usernames}</code> และ <code>${expected_roles}</code> แล้ว log ว่า username แต่ละคนมี role ที่ต้องการ</p>
-    <p><strong>Challenge:</strong> ถ้า list ทั้ง 2 มีความยาวต่างกัน ต้องจัดการอย่างไร? (อย่าให้ test ผ่านโดยไม่รู้ตัว)</p>
+    <div class="exercise-title">ข้อ 6 — หา Bug ใน Check All Approved</div>
+    <p>ดูโค้ดนี้แล้วหา bug 2 จุด — แต่ละจุดทำให้เกิดอะไร? และเขียนโค้ดที่แก้แล้วด้วย</p>
+    <pre><code class="language-robotframework">Check All Items Approved
+    [Arguments]    @{items}
+    FOR    ${item}    IN    @{items}
+        IF    '${item}' == 'Rejected'    BREAK
+    END
+    Log    ทุก item ผ่านแล้ว</code></pre>
     <details class="answer">
       <summary>ดูเฉลย</summary>
       <div class="answer-body">
-        <pre><code class="language-robotframework">*** Keywords ***
-Validate Users
-    [Arguments]    ${usernames}    ${expected_roles}
-    ${len_users}=      Get Length    ${usernames}
-    ${len_roles}=      Get Length    ${expected_roles}
-    Should Be Equal As Integers    ${len_users}    ${len_roles}
-    ...    List length mismatch: ${len_users} users vs ${len_roles} roles
-    FOR    ${username}    ${expected}    IN ZIP    ${usernames}    ${expected_roles}
-        Log    ${username}: expected role = ${expected}
-    END</code></pre>
-        <p><strong>หลักการ:</strong> ตรวจสอบความยาวก่อน ZIP เพื่อ fail fast แทนที่จะวนแค่ list ที่สั้นกว่าโดยไม่รู้ตัว</p>
+        <p><strong>Bug 1:</strong> BREAK หยุด loop ได้ แต่ <code>Log ทุก item ผ่านแล้ว</code> อยู่นอก loop — ถ้าเจอ "Rejected" ก็ยัง Log ว่าผ่านอยู่ดี</p>
+        <p><strong>Bug 2:</strong> ถ้า list ว่าง loop ไม่ทำงานเลย แต่ยัง Log "ทุก item ผ่านแล้ว" → false positive</p>
+        <pre><code class="language-robotframework">Check All Items Approved
+    [Arguments]    @{items}
+    Should Not Be Empty    ${items}    ไม่มี item ให้ตรวจ
+    ${rejected}=    Set Variable    ${False}
+    FOR    ${item}    IN    @{items}
+        IF    '${item}' == 'Rejected'
+            ${rejected}=    Set Variable    ${True}
+            BREAK
+        END
+    END
+    Should Be True    not ${rejected}    พบ item ที่ถูก Rejected</code></pre>
       </div>
     </details>
   </div>
 
   <!-- WHILE -->
-  <h2>ส่วนที่ 3: WHILE + BREAK + CONTINUE</h2>
+  <h2>ส่วนที่ 3: WHILE + BREAK</h2>
 
   <div class="exercise-item">
     <span class="exercise-badge badge-recall">📝 Recall</span>
@@ -300,7 +322,7 @@ Test Find First Even
   </div>
 
   <div class="page-nav">
-    <a href="03-while-loop.html">← บทที่ 3 — WHILE</a>
+    <a href="05-selenium.html">← บทที่ 5 — Selenium จริง</a>
     <a href="glossary.html" class="next">
       <div><span class="label">ถัดไป</span>Glossary →</div>
     </a>
