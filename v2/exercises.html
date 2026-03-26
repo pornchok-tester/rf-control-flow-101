@@ -34,7 +34,7 @@
 
   <div class="chapter-label">ฝึกหัด</div>
   <h1>แบบฝึกหัด</h1>
-  <p style="color:#64748b;margin-bottom:32px;">9 โจทย์ ไล่ระดับ Recall → Application → Synthesis พร้อมเฉลย</p>
+  <p style="color:#64748b;margin-bottom:32px;">15 โจทย์ ไล่ระดับ Recall → Application → Synthesis พร้อมเฉลย</p>
 
   <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:16px 20px;margin-bottom:32px;font-size:13.5px;">
     <strong>วิธีใช้:</strong>
@@ -317,6 +317,173 @@ Test Find First Even
         ${attempt}=    Evaluate    ${attempt} + 1
     END
     Should Be True    ${result}    Keyword failed after ${max_attempts} attempts</code></pre>
+      </div>
+    </details>
+  </div>
+
+  <!-- LIST -->
+  <h2>ส่วนที่ 4: List ใน RF</h2>
+
+  <div class="exercise-item">
+    <span class="exercise-badge badge-recall">📝 Recall</span>
+    <div class="exercise-title">ข้อ 10 — Index และ List ว่าง</div>
+    <p>ตอบ 2 คำถามนี้ด้วยคำตัวเอง:</p>
+    <ol>
+      <li>List มี 4 item — item สุดท้ายอยู่ที่ index อะไร?</li>
+      <li>ถ้า List ว่างแล้วนำไปใช้กับ FOR — จะเกิดอะไรขึ้น? และถ้าต้องการให้ test fail เมื่อ List ว่าง ต้องทำยังไง?</li>
+    </ol>
+    <details class="answer">
+      <summary>ดูเฉลย</summary>
+      <div class="answer-body">
+        <p><strong>ข้อ 1:</strong> index 3 — เพราะ index เริ่มจาก 0 ดังนั้น 4 item = index 0, 1, 2, 3</p>
+        <p><strong>ข้อ 2:</strong> FOR ไม่ทำงานเลย เงียบๆ ไม่มี error — ถ้าต้องการ fail ต้องใช้ <code>Should Not Be Empty    ${list}    ข้อความ error</code> ก่อน FOR</p>
+      </div>
+    </details>
+  </div>
+
+  <div class="exercise-item">
+    <span class="exercise-badge badge-application">💻 Application</span>
+    <div class="exercise-title">ข้อ 11 — ตรวจ URL ทุกตัว</div>
+    <p>เขียน keyword ชื่อ <code>Verify All HTTPS</code> ที่รับ <code>@{urls}</code> แล้ว:</p>
+    <ul>
+      <li>ตรวจว่า list ไม่ว่างก่อน</li>
+      <li>วนผ่านทุก URL และ log แต่ละตัว</li>
+      <li>ถ้า URL ไหนไม่ขึ้นต้นด้วย <code>https</code> ให้ log ว่า <code>WARNING: [url] ไม่ใช่ HTTPS</code></li>
+    </ul>
+    <p>ทดสอบกับ <code>https://site1.com    http://site2.com    https://site3.com</code></p>
+    <details class="answer">
+      <summary>ดูเฉลย</summary>
+      <div class="answer-body">
+        <pre><code class="language-robotframework">*** Keywords ***
+Verify All HTTPS
+    [Arguments]    @{urls}
+    Should Not Be Empty    ${urls}    ไม่มี URL ให้ตรวจ
+    FOR    ${url}    IN    @{urls}
+        Log    ${url}
+        ${is_https}=    Run Keyword And Return Status
+        ...    Should Start With    ${url}    https
+        IF    not ${is_https}
+            Log    WARNING: ${url} ไม่ใช่ HTTPS
+        END
+    END
+
+*** Test Cases ***
+Test HTTPS Check
+    Verify All HTTPS
+    ...    https://site1.com
+    ...    http://site2.com
+    ...    https://site3.com</code></pre>
+        <div class="out-box" style="margin-top:10px;"><div class="out-label">Output</div>https://site1.com<br>http://site2.com<br>WARNING: http://site2.com ไม่ใช่ HTTPS<br>https://site3.com</div>
+      </div>
+    </details>
+  </div>
+
+  <div class="exercise-item">
+    <span class="exercise-badge badge-synthesis">🔬 Synthesis</span>
+    <div class="exercise-title">ข้อ 12 — หา Bug ใน Get First Item</div>
+    <p>ดูโค้ดนี้แล้วหา bug 2 จุด — แต่ละจุดเกิดอะไรขึ้น? และเขียนโค้ดที่แก้แล้วด้วย</p>
+    <pre><code class="language-robotframework">Get First Failing Test
+    [Arguments]    @{results}
+    FOR    ${r}    IN    @{results}
+        IF    '${r}' == 'Fail'    BREAK
+    END
+    Log    พบ test ที่ fail: ${r}</code></pre>
+    <details class="answer">
+      <summary>ดูเฉลย</summary>
+      <div class="answer-body">
+        <p><strong>Bug 1:</strong> ถ้าไม่มี "Fail" เลย loop วนจนจบ <code>${r}</code> จะเป็น item สุดท้าย แต่ Log บอกว่า "พบ test ที่ fail" ทั้งที่ไม่ได้พบจริง</p>
+        <p><strong>Bug 2:</strong> ถ้า list ว่าง <code>${r}</code> ไม่ถูก assign เลย → <code>Log    ${r}</code> จะ error</p>
+        <pre><code class="language-robotframework">Get First Failing Test
+    [Arguments]    @{results}
+    Should Not Be Empty    ${results}    ไม่มีผลทดสอบ
+    ${found}=    Set Variable    ${False}
+    FOR    ${r}    IN    @{results}
+        IF    '${r}' == 'Fail'
+            ${found}=    Set Variable    ${True}
+            BREAK
+        END
+    END
+    IF    ${found}
+        Log    พบ test ที่ fail: ${r}
+    ELSE
+        Log    ทุก test ผ่าน
+    END</code></pre>
+      </div>
+    </details>
+  </div>
+
+  <!-- SELENIUM -->
+  <h2>ส่วนที่ 5: Selenium จริง</h2>
+
+  <div class="exercise-item">
+    <span class="exercise-badge badge-recall">📝 Recall</span>
+    <div class="exercise-title">ข้อ 13 — Get WebElements vs Wait Until Element Is Visible</div>
+    <p>อธิบายความแตกต่างระหว่าง 2 keyword นี้ เมื่อไม่เจอ element ที่ต้องการ (ใช้คำตัวเอง ไม่ต้องมีโค้ด)</p>
+    <details class="answer">
+      <summary>ดูเฉลย</summary>
+      <div class="answer-body">
+        <p><strong>Get WebElements</strong> — ไม่ fail ถ้าไม่เจอ element คืน list ว่างเงียบๆ ต้องใช้ Should Not Be Empty เองถ้าอยากให้ fail</p>
+        <p><strong>Wait Until Element Is Visible</strong> — รอจนถึง timeout แล้ว fail พร้อม error message ถ้าไม่เจอ</p>
+        <p>ใช้ Get WebElements เมื่อจำนวน element ไม่แน่นอนและต้องการวนผ่านทุกตัว | ใช้ Wait Until Element Is Visible เมื่อต้องการ element ตัวเดียวและต้องการให้ fail ถ้าไม่เจอ</p>
+      </div>
+    </details>
+  </div>
+
+  <div class="exercise-item">
+    <span class="exercise-badge badge-application">💻 Application</span>
+    <div class="exercise-title">ข้อ 14 — Wait For Table To Load</div>
+    <p>เขียน keyword ชื่อ <code>Wait For Table To Load</code> ที่รับ <code>${table_locator}</code> และ <code>${timeout}=20 seconds</code> โดย:</p>
+    <ul>
+      <li>ใช้ WHILE วนเช็คทุก 0.5 วินาที</li>
+      <li>ถ้า table เห็นแล้วให้ BREAK</li>
+      <li>ใช้ <code>Run Keyword And Return Status</code> เพื่อไม่ให้ fail ระหว่างรอ</li>
+    </ul>
+    <details class="answer">
+      <summary>ดูเฉลย</summary>
+      <div class="answer-body">
+        <pre><code class="language-robotframework">*** Keywords ***
+Wait For Table To Load
+    [Arguments]    ${table_locator}    ${timeout}=20 seconds
+    WHILE    True    limit=${timeout}
+        ${ready}=    Run Keyword And Return Status
+        ...    Element Should Be Visible    ${table_locator}
+        IF    ${ready}    BREAK
+        Sleep    0.5s
+    END</code></pre>
+        <p>keyword นี้ reusable — เรียกได้ทุกที่ที่มี table และไม่รู้ว่าจะโหลดเสร็จเมื่อไหร่</p>
+      </div>
+    </details>
+  </div>
+
+  <div class="exercise-item">
+    <span class="exercise-badge badge-synthesis">🔬 Synthesis</span>
+    <div class="exercise-title">ข้อ 15 — วิเคราะห์ Verify All Rows</div>
+    <p>ดูโค้ดนี้แล้วตอบ 2 คำถาม:</p>
+    <pre><code class="language-robotframework">Verify All Rows Have Status
+    [Arguments]    ${expected_status}
+    @{rows}=    Get WebElements    css=table tbody tr
+    FOR    ${row}    IN    @{rows}
+        ${status}=    Get Text    css=td.status
+        Should Be Equal    ${status}    ${expected_status}
+    END</code></pre>
+    <ol>
+      <li>ถ้าไม่มี row ใน table เลย — test จะ pass หรือ fail? เป็นพฤติกรรมที่ต้องการไหม?</li>
+      <li>locator <code>css=td.status</code> ใน Get Text มีปัญหาอะไร? และควรแก้ยังไง?</li>
+    </ol>
+    <details class="answer">
+      <summary>ดูเฉลย</summary>
+      <div class="answer-body">
+        <p><strong>ข้อ 1:</strong> test pass — Get WebElements คืน list ว่าง FOR ไม่ทำงาน ไม่มี error แต่ไม่ได้ตรวจอะไรเลย ควรเพิ่ม <code>Should Not Be Empty    ${rows}    ไม่พบ row ใน table</code> ก่อน FOR</p>
+        <p><strong>ข้อ 2:</strong> <code>css=td.status</code> จะ match <code>td.status</code> ตัวแรกที่พบในหน้าเสมอ ไม่ใช่ td ที่อยู่ใน <code>${row}</code> นั้น — ทุก iteration จะอ่านค่าจาก row แรกซ้ำๆ</p>
+        <p><strong>Fix:</strong> ส่ง <code>${row}</code> ให้ Get Text โดยตรง (ถ้า td.status คือ element ที่ต้องการอ่าน text) หรือใช้ locator แบบ relative เช่น <code>Get Text    ${row}</code></p>
+        <pre><code class="language-robotframework">Verify All Rows Have Status
+    [Arguments]    ${expected_status}
+    @{rows}=    Get WebElements    css=table tbody tr td.status
+    Should Not Be Empty    ${rows}    ไม่พบ row ใน table
+    FOR    ${cell}    IN    @{rows}
+        ${status}=    Get Text    ${cell}
+        Should Be Equal    ${status}    ${expected_status}
+    END</code></pre>
       </div>
     </details>
   </div>
