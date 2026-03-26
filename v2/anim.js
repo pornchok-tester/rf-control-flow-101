@@ -23,7 +23,7 @@
       const data = JSON.parse(el.dataset.stepper);
       this.codeLines = data.code.split('\n');
       this.steps = data.steps;
-      this.idx = 0;
+      this.idx = -1; // -1 = ยังไม่เริ่ม
       this.build();
       this.render();
     }
@@ -58,12 +58,25 @@
           <button class="st-btn primary" data-action="next">ถัดไป →</button>
         </div>`;
 
-      this.el.querySelector('[data-action="reset"]').onclick = () => { this.idx = 0; this.render(); };
-      this.el.querySelector('[data-action="prev"]').onclick = () => { if (this.idx > 0) { this.idx--; this.render(); } };
+      this.el.querySelector('[data-action="reset"]').onclick = () => { this.idx = -1; this.render(); };
+      this.el.querySelector('[data-action="prev"]').onclick = () => { if (this.idx > -1) { this.idx--; this.render(); } };
       this.el.querySelector('[data-action="next"]').onclick = () => { if (this.idx < this.steps.length - 1) { this.idx++; this.render(); } };
     }
 
     render() {
+      // ยังไม่เริ่ม — ไม่ highlight อะไร
+      if (this.idx === -1) {
+        this.el.querySelectorAll('.sl').forEach(row => row.className = 'sl');
+        this.el.querySelector('.sv-body').innerHTML = '<span class="sp-empty">—</span>';
+        this.el.querySelector('.so-body').innerHTML = '<span class="sp-empty">—</span>';
+        this.el.querySelector('.st-num').textContent = '';
+        this.el.querySelector('.st-msg').textContent = 'กด "ถัดไป" เพื่อดูการทำงานทีละขั้น';
+        this.el.querySelector('.st-prog').textContent = `0 / ${this.steps.length}`;
+        this.el.querySelector('[data-action="prev"]').disabled = true;
+        this.el.querySelector('[data-action="next"]').disabled = false;
+        return;
+      }
+
       const step = this.steps[this.idx];
       const hi = step.hi || [];
 
