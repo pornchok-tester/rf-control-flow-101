@@ -288,54 +288,6 @@ Submit Order With Retry
     Wait Until Element Is Visible    css=.order-success</code></pre>
   </div>
 
-  <!-- HOW IT FITS POM -->
-  <h2>วางไว้ใน POM ยังไง</h2>
-  <p>keyword พวกนี้แบ่งตาม layer ได้ชัดเจน:</p>
-
-  <table>
-    <tr><th>Layer</th><th>Keyword</th><th>ทำอะไร</th></tr>
-    <tr>
-      <td><strong>Page Keyword</strong></td>
-      <td><code>Get All Product Names</code></td>
-      <td>รู้จัก locator, ใช้ Get WebElements, คืน list ออกมา</td>
-    </tr>
-    <tr>
-      <td><strong>Page Keyword</strong></td>
-      <td><code>Wait For Spinner To Disappear</code></td>
-      <td>รู้จัก locator ของ spinner ในหน้านั้น</td>
-    </tr>
-    <tr>
-      <td><strong>Feature Keyword</strong></td>
-      <td><code>Verify All Products Have Price</code></td>
-      <td>เรียก page keyword แล้ว assert — ไม่ยุ่งกับ locator</td>
-    </tr>
-    <tr>
-      <td><strong>Feature Keyword</strong></td>
-      <td><code>Find Product Across Pages</code></td>
-      <td>ใช้ WHILE + page keywords รวมกัน</td>
-    </tr>
-  </table>
-
-  <pre><code class="language-robotframework"># pages/product_page.robot
-*** Keywords ***
-Get All Product Names
-    @{elements}=    Get WebElements    css=.product-card .name
-    ${names}=    Create List
-    FOR    ${el}    IN    @{elements}
-        ${text}=    Get Text    ${el}
-        Append To List    ${names}    ${text}
-    END
-    RETURN    ${names}
-
-# features/product_feature.robot
-*** Keywords ***
-All Products Should Have Names
-    ${names}=    Get All Product Names
-    Should Not Be Empty    ${names}    ไม่เจอ product เลย
-    FOR    ${name}    IN    @{names}
-        Should Not Be Empty    ${name}
-    END</code></pre>
-
   <div class="quiz-section">
     <h3>🧠 เช็คความเข้าใจ</h3>
 
