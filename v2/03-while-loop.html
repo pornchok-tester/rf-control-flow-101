@@ -87,6 +87,26 @@
     <tr><td><code>WHILE    cond    limit=NONE</code></td><td>ไม่มี limit — ต้องมั่นใจว่ามี BREAK</td></tr>
   </table>
 
+  <div class="stepper">
+    <div class="st-header">limit=3 — WHILE วนได้สูงสุด 3 รอบ</div>
+    <div data-stepper='{
+      "code": "${x}=    Set Variable    0\nWHILE    True    limit=3\n    Log    รอบที่ ${x}\n    ${x}=    Evaluate    ${x} + 1\nEND",
+      "steps": [
+        {"hi":[1],"vars":{"x":0},"out":[],"note":"กำหนด x = 0"},
+        {"hi":[2],"vars":{"x":0},"out":[],"note":"เข้า WHILE รอบที่ 1 — condition True, ยังไม่ถึง limit"},
+        {"hi":[3],"vars":{"x":0},"out":["รอบที่ 0"],"note":"Log รอบที่ 0"},
+        {"hi":[4],"vars":{"x":1},"out":["รอบที่ 0"],"note":"x = 0 + 1 = 1"},
+        {"hi":[2],"vars":{"x":1},"out":["รอบที่ 0"],"note":"รอบที่ 2 — ยังไม่ถึง limit"},
+        {"hi":[3],"vars":{"x":1},"out":["รอบที่ 0","รอบที่ 1"],"note":"Log รอบที่ 1"},
+        {"hi":[4],"vars":{"x":2},"out":["รอบที่ 0","รอบที่ 1"],"note":"x = 1 + 1 = 2"},
+        {"hi":[2],"vars":{"x":2},"out":["รอบที่ 0","รอบที่ 1"],"note":"รอบที่ 3 — วนรอบสุดท้ายที่ limit อนุญาต"},
+        {"hi":[3],"vars":{"x":2},"out":["รอบที่ 0","รอบที่ 1","รอบที่ 2"],"note":"Log รอบที่ 2"},
+        {"hi":[4],"vars":{"x":3},"out":["รอบที่ 0","รอบที่ 1","รอบที่ 2"],"note":"x = 2 + 1 = 3"},
+        {"hi":[2],"vars":{"x":3},"out":["รอบที่ 0","รอบที่ 1","รอบที่ 2"],"note":"จะวนรอบที่ 4 — เกิน limit=3 → FAIL ทันที"}
+      ]
+    }'></div>
+  </div>
+
   <h2>BREAK — ออกจาก Loop ทันที</h2>
 
   <div class="stepper">
